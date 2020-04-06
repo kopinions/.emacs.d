@@ -23,10 +23,6 @@
     :ensure t
     :commands lsp-treemacs-errors-list
     )
-  (use-package lsp-origami
-    :after origami
-    :hook
-    (origami-mode . lsp-origami-mode))
   ;; LSP UI tools
   (use-package lsp-ui
     :ensure t
@@ -78,14 +74,23 @@
     (lsp-mode . lsp-ui-mode)))
 
 (use-package dap-mode
-  :after lsp-mode
+  :custom
+  (dap-lldb-debugged-program-function (lambda () (read-file-name "Select file to debug.")))
+  :after lsp-mode posframe
   :config
-    (require 'dap-hydra)
-    (require 'dap-gdb-lldb)	
-    (require 'dap-go)
-    (require 'dap-ui)
-    (dap-mode 1)
-    (dap-ui-mode 1))
+  (require 'dap-hydra)
+  (require 'dap-lldb)  
+  (require 'dap-go)
+  (require 'dap-ui)
+  (dap-mode 1)
+  (dap-ui-mode 1)
+  (dap-tooltip-mode 1)
+  ;; use tooltips for mouse hover
+  ;; if it is not enabled `dap-mode' will use the minibuffer.
+  (tooltip-mode 1)
+  ;; displays floating panel with debug buttons
+  ;; requies emacs 26+
+  (dap-ui-controls-mode 1))
 
 (use-package lsp-ivy
   :load-path (lambda () (expand-file-name "lisp" user-emacs-directory))

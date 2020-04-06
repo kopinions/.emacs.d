@@ -2,12 +2,12 @@
   :diminish company-mode
   :bind
   (:map company-active-map
-   ("C-n" . company-select-next)
-   ("C-p" . company-select-previous)
-   ("<tab>" . company-complete-common-or-cycle)
-   :map company-search-map
-   ("C-p" . company-select-previous)
-   ("C-n" . company-select-next))
+	("C-n" . company-select-next)
+	("C-p" . company-select-previous)
+	("<tab>" . company-complete-common-or-cycle)
+	:map company-search-map
+	("C-p" . company-select-previous)
+	("C-n" . company-select-next))
   :custom
   (company-idle-delay 0)
   (company-echo-delay 0)
@@ -16,6 +16,7 @@
   :config
   (global-company-mode)
   (use-package company-posframe
+    :diminish company-posframe
     :hook
     (company-mode . company-posframe-mode))
   (use-package company-flx
@@ -23,7 +24,7 @@
     :config
     (company-flx-mode +1))
   (use-package company-box
-    :diminish
+    :diminish company-box
     :hook (company-mode . company-box-mode)
     :config
     (setq company-box-backends-colors nil)
@@ -33,21 +34,31 @@
     :defines company-quickhelp-delay
     :bind
     (:map company-active-map
-      ("M-h" . company-quickhelp-manual-begin))
+	  ("M-h" . company-quickhelp-manual-begin))
     :hook
     (global-company-mode . company-quickhelp-mode)
     :custom
     (company-quickhelp-delay 0.8)))
 
+(defvar company-mode/enable-yas t
+  "Enable yasnippet for all backends.")
+
+(defun company-mode/backend-with-yas (backend)
+  (if	(or (not company-mode/enable-yas)
+	    (and (listp backend) (member 'company-yasnippet backend)))
+      backend
+    (append (if (consp backend) backend (list backend))
+	    '(:with company-yasnippet))))
+
 (use-package yasnippet
-  :ensure t
+  :after company
   :diminish yas-minor-mode
   :config
   (use-package yasnippet-snippets
-    :ensure t
-    :requires yasnippet)
+    :requires yasnippet
+    :custom (yas-snippet-dirs `(,(expand-file-name "snippets" m/conf.d) ,yasnippet-snippets-dir)))
+  (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends))
   (yas-reload-all)
-  (yas-global-mode t)
-  :custom (yas-snippet-dirs '("~/.emacs.d/snippets")))
+  (yas-global-mode t))
 
 (provide 'init-completion)

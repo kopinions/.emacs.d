@@ -11,9 +11,9 @@
   (xclip-mode 1))
 
 (use-package exec-path-from-shell
- :config
- (when (memq m/os '(macos linux))
-   (exec-path-from-shell-initialize)))
+  :config
+  (when (memq m/os '(macos linux))
+    (exec-path-from-shell-initialize)))
 
 (use-package request)
 

@@ -54,13 +54,18 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
-(require 'use-package)
+(eval-when-compile (require 'use-package))
+
 (setq use-package-always-ensure t)
+
 (use-package auto-package-update
   :config
   (setq auto-package-update-delete-old-versions t)
   (setq auto-package-update-hide-results t)
   (auto-package-update-maybe))
+
+(use-package use-package-ensure-system-package
+  :ensure t)
 
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
@@ -72,30 +77,34 @@
   (auto-compile-on-load-mode)
   (auto-compile-on-save-mode))
 
-(defconst m/load-path (expand-file-name "lisp" user-emacs-directory))
+(defconst m/load-path (lambda () (list 
+			     (expand-file-name "lisp" user-emacs-directory)
+			     (expand-file-name "verilog-mode" (expand-file-name "3rdparty" user-emacs-directory)))))
 (use-package init-os
- :load-path m/load-path)
+  :load-path m/load-path)
 (use-package init-ui
- :load-path m/load-path)
-(use-package init-completion
- :load-path m/load-path)
+  :load-path m/load-path)
 (use-package init-correction
- :load-path m/load-path)
+  :load-path m/load-path)
 (use-package init-project
- :load-path m/load-path)
+  :load-path m/load-path)
 (use-package init-literate
- :load-path m/load-path)
+  :load-path m/load-path)
 (use-package init-vcs
- :load-path m/load-path)
+  :load-path m/load-path)
 (use-package init-lsp
- :load-path m/load-path)
+  :load-path m/load-path)
 (use-package init-editing
- :load-path m/load-path)
+  :load-path m/load-path)
 (use-package init-chinese
- :load-path m/load-path)
+  :load-path m/load-path)
 (use-package init-languages
- :load-path m/load-path)
+  :load-path m/load-path)
 (use-package init-terminal
- :load-path m/load-path)
+  :load-path m/load-path)
+(use-package init-completion
+  :load-path m/load-path)
+(use-package init-email
+  :load-path m/load-path)
 
 (provide 'init)

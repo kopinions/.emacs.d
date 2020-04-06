@@ -1,6 +1,8 @@
 (setenv "PAGER" "cat")
 
+(use-package shrink-path)
 (use-package eshell
+  :after shrink-path
   :init
   (defvar eshell-mode-map (make-sparse-keymap))
   :custom
@@ -10,14 +12,26 @@
   (eshell-save-history-on-exit t)
   (eshell-prefer-lisp-functions nil)
   (eshell-destroy-buffer-when-process-dies t)
+  (eshell-cmpl-cycle-completions nil)
+  (eshell-cmpl-ignore-case t)
+  (eshell-ask-to-save-history (quote always))
+  (eshell-prompt-regexp "❯❯❯ ")
+  (eshell-prompt-function
+   (lambda ()
+     (format "%s %s\n%s%s%s "
+	     (all-the-icons-octicon "repo")
+	     (propertize (cdr (shrink-path-prompt default-directory)) 'face `(:foreground "white"))
+	     (propertize "❯" 'face `(:foreground "#ff79c6"))
+	     (propertize "❯" 'face `(:foreground "#f1fa8c"))
+	     (propertize "❯" 'face `(:foreground "#50fa7b")))))
   :bind
   (:map eshell-mode-map
-  ("C-c c" . eshell-interrupt-process))
+	("C-c c" . eshell-interrupt-process))
   :hook
   ((eshell-mode . (lambda() (add-to-list 'eshell-visual-commands "ssh")
-                           (add-to-list 'eshell-visual-commands "tail")
-			   (add-to-list 'eshell-visual-commands "top")
-			   (setq-local eshell-mode-map (make-sparse-keymap))))))
+		    (add-to-list 'eshell-visual-commands "tail")
+		    (add-to-list 'eshell-visual-commands "top")
+		    (setq-local eshell-mode-map (make-sparse-keymap))))))
 
 (use-package eshell
   :hook
@@ -79,6 +93,12 @@ file to edit."
   (let* ((files (eshell/f filename dir))
          (file (car (s-split "\n" files))))
     (find-file file)))
+
+(use-package eshell-autojump)
+
+(use-package eshell-toggle
+  :bind
+  (("M-<f12>" . eshell-toggle)))
 
 (use-package eshell
   :config

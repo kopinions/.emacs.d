@@ -7,10 +7,9 @@
   (cnfonts-enable))
 
 (use-package posframe)
-
 (use-package pyim
-  :diminish pyim-isearch-mode
-  :requires posframe
+  :diminish pyim-isearch
+  :after posframe
   :config
   ;; 激活 basedict 拼音词库，五笔用户请继续阅读 README
   (use-package pyim-basedict
@@ -28,14 +27,14 @@
   ;; 2. 光标前是汉字字符时，才能输入中文。
   ;; 3. 使用 M-j 快捷键，强制将光标前的拼音字符串转换为中文。
   (setq-default pyim-english-input-switch-functions
-                '(pyim-probe-dynamic-english
-                  pyim-probe-isearch-mode
-                  pyim-probe-program-mode
-                  pyim-probe-org-structure-template))
+		'(pyim-probe-dynamic-english
+		  pyim-probe-isearch-mode
+		  pyim-probe-program-mode
+		  pyim-probe-org-structure-template))
 
   (setq-default pyim-punctuation-half-width-functions
-                '(pyim-probe-punctuation-line-beginning
-                  pyim-probe-punctuation-after-punctuation))
+		'(pyim-probe-punctuation-line-beginning
+		  pyim-probe-punctuation-after-punctuation))
 
   ;; 开启拼音搜索功能
   (pyim-isearch-mode 1)
@@ -58,17 +57,26 @@
   :hook 
   ((emacs-startup . pyim-restart)))
 
-(use-package liberime											   
-    :load-path (lambda () (expand-file-name "rime" user-emacs-directory))					   
-    :custom													   
-    (rime_share_data_dir "/Library/Input Methods/Squirrel.app/Contents/SharedSupport")
-    (rime_user_data_dir (expand-file-name "rime" user-emacs-directory))
-    :hook													   
-    (pyim-load . (lambda () 											   
-      (interactive)												   
-      (liberime-start rime_share_data_dir rime_user_data_dir)						   
-      (liberime-select-schema "luna_pinyin_simp")								   
-      (setq pyim-default-scheme 'rime-quanpin)								   
-    )))
+(use-package liberime
+  :load-path (lambda () (expand-file-name "liberime" (expand-file-name "3rdparty" m/conf.d)))
+  :after pyim
+  :init
+  (setenv "RIME_PATH" (expand-file-name "librime" (expand-file-name "3rdparty" m/conf.d)))
+  :config
+  (liberime-build)
+  :hook
+  (liberime-after-start . (lambda ()
+			    (let ((buf (get-buffer "*liberime message*")))
+			      (if buf (with-current-buffer buf
+					(kill-this-buffer)
+					(if (not (one-window-p))
+					    (delete-window)))))
+			    ;; Select schema delay 5 second, make sure
+			    ;; `liberime-load' run finish.
+			    (run-with-timer
+			     5 1
+			     (ignore-errors (lambda ()
+					      (liberime-select-schema "luna_pinyin_simp")
+					      (setq pyim-default-scheme 'rime)))))))
 
 (provide 'init-chinese)

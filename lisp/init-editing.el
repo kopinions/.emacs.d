@@ -206,6 +206,7 @@
   ("M-z" . avy-zap-up-to-char-dwim))
 
 (use-package expand-region
+  :after org
   :bind
   (("C-=" . er/expand-region)))
 

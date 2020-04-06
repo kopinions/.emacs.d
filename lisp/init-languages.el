@@ -26,6 +26,7 @@
   (emacs-lisp-mode . rainbow-mode))
 
 (use-package verilog-mode
+  :load-path m/load-path
   :config
   (autoload 'verilog-mode "verilog-mode" "Verilog mode" t )
   (add-to-list 'auto-mode-alist '("\\.[ds]?vh?\\'" . verilog-mode)))
