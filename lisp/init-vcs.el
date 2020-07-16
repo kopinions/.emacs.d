@@ -3,20 +3,20 @@
 (use-package gitattributes-mode)
 
 (use-package git-gutter
-    :custom
-    (git-gutter:modified-sign "~")
-    (git-gutter:added-sign    "+")
-    (git-gutter:deleted-sign  "-")
-    :custom-face
-    (git-gutter:modified ((t (:foreground "#f1fa8c" :background "#f1fa8c"))))
-    (git-gutter:added    ((t (:foreground "#50fa7b" :background "#50fa7b"))))
-    (git-gutter:deleted  ((t (:foreground "#ff79c6" :background "#ff79c6"))))
-    :config
-    (global-git-gutter-mode +1)
-    :hook
-    (magit-post-refresh . git-gutter:update-all-windows)
-    (magit-post-commit . git-gutter:update-all-windows)
-    (magit-refresh-buffer . git-gutter:update-all-windows))
+  :custom
+  (git-gutter:modified-sign "~")
+  (git-gutter:added-sign    "+")
+  (git-gutter:deleted-sign  "-")
+  :custom-face
+  (git-gutter:modified ((t (:foreground "#f1fa8c" :background "#f1fa8c"))))
+  (git-gutter:added    ((t (:foreground "#50fa7b" :background "#50fa7b"))))
+  (git-gutter:deleted  ((t (:foreground "#ff79c6" :background "#ff79c6"))))
+  :config
+  (global-git-gutter-mode +1)
+  :hook
+  (magit-post-refresh . git-gutter:update-all-windows)
+  (magit-post-commit . git-gutter:update-all-windows)
+  (magit-refresh-buffer . git-gutter:update-all-windows))
 
 (use-package magit
   :after (fullframe diff-hl)
@@ -39,8 +39,6 @@
   :config
   (defalias 'tm 'git-timemachine))
 
-(provide 'init-vcs)
-
 (use-package yagist)
 (use-package bug-reference-github
   :hook
@@ -48,3 +46,5 @@
 (use-package github-clone)
 (use-package forge)
 (use-package github-review)
+
+(provide 'init-vcs)

@@ -2,22 +2,36 @@
   :ensure t
   :custom
   ;; debug
-  (lsp-print-io nil)
+  (lsp-log-io t)
   (lsp-trace nil)
+  (lsp-enable-snippet nil)
   (lsp-print-performance nil)
   ;; general
   (lsp-auto-guess-root t)
   (lsp-document-sync-method 'incremental) ;; none, full, incremental, or nil
-  (lsp-response-timeout 10)
+  (lsp-response-timeout 15)
   (lsp-prefer-flymake nil) ;; t(flymake), nil(lsp-ui), or :none
   ;; go-client
   (lsp-clients-go-server-args '("--cache-style=always" "--diagnostics-style=onsave" "--format-style=goimports"))
-  (lsp-clients-clangd-args '("-j=8" "--pch-storage=memory" "-background-index" "-log=error" "--compile-commands-dir=build" "--clang-tidy" "--completion-style=detailed"))
+  (lsp-clients-clangd-args '("-j=4"
+			     "--all-scopes-completion"
+			     "--pch-storage=memory"
+			     "-background-index"
+			     "-log=info"
+			     "--compile-commands-dir=build"
+			     "--clang-tidy"
+			     "--fallback-style=llvm"
+			     "--header-insertion=iwyu"
+			     "--limit-results=50"
+			     "--suggest-missing-includes"
+			     "--offset-encoding=utf-8"
+			     "--completion-style=detailed"
+			     "--pretty"))
   :hook
   (c-mode-common . lsp)
   :bind
   (:map lsp-mode-map
-        ("C-c r"   . lsp-rename))
+	("C-c r"   . lsp-rename))
   :config
   (use-package lsp-treemacs
     :ensure t
@@ -30,14 +44,14 @@
     ;; lsp-ui-doc
     (lsp-ui-doc-enable nil)
     (lsp-ui-doc-header t)
-    (lsp-ui-doc-include-signature nil)
+    (lsp-ui-doc-include-signature t)
     (lsp-ui-doc-position 'at-point) ;; top, bottom, or at-point
     (lsp-ui-doc-max-width 120)
     (lsp-ui-doc-max-height 30)
     (lsp-ui-doc-use-childframe t)
     (lsp-ui-doc-use-webkit t)
     ;; lsp-ui-flycheck
-    (lsp-ui-flycheck-enable nil)
+    (lsp-ui-flycheck-enable t)
     ;; lsp-ui-sideline
     (lsp-ui-sideline-enable nil)
     (lsp-ui-sideline-ignore-duplicate t)
@@ -45,10 +59,9 @@
     (lsp-ui-sideline-show-hover t)
     (lsp-ui-sideline-show-diagnostics nil)
     (lsp-ui-sideline-show-code-actions t)
-    (lsp-ui-sideline-code-actions-prefix "")
     ;; lsp-ui-imenu
     (lsp-ui-imenu-enable t)
-    (lsp-ui-imenu-kind-position 'top)
+    (lsp-ui-imenu-kind-position 'left)
     ;; lsp-ui-peek
     (lsp-ui-peek-enable t)
     (lsp-ui-peek-peek-height 80)
@@ -58,18 +71,18 @@
     (defun m/toggle-lsp-ui-doc ()
       (interactive)
       (if lsp-ui-doc-mode
-          (progn
-            (lsp-ui-doc-mode -1)
-            (lsp-ui-doc--hide-frame))
-        (lsp-ui-doc-mode 1)))
+	  (progn
+	    (lsp-ui-doc-mode -1)
+	    (lsp-ui-doc--hide-frame))
+	(lsp-ui-doc-mode 1)))
     :bind
     (:map lsp-mode-map
-          ("M-?" . lsp-ui-peek-find-references)
-          ("M-." . lsp-ui-peek-find-definitions)
-          ("C-c C-i" . lsp-ui-peek-find-implementation)
-          ("C-c m"   . lsp-ui-imenu)
-          ("C-c s"   . lsp-ui-sideline-mode)
-          ("C-c d"   . m/toggle-lsp-ui-doc))
+	  ("M-?" . lsp-ui-peek-find-references)
+	  ("M-." . lsp-ui-peek-find-definitions)
+	  ("C-c C-i" . lsp-ui-peek-find-implementation)
+	  ("C-c m"   . lsp-ui-imenu)
+	  ("C-c s"   . lsp-ui-sideline-mode)
+	  ("C-c d"   . m/toggle-lsp-ui-doc))
     :hook
     (lsp-mode . lsp-ui-mode)))
 
@@ -93,7 +106,7 @@
   (dap-ui-controls-mode 1))
 
 (use-package lsp-ivy
-  :load-path (lambda () (expand-file-name "lisp" user-emacs-directory))
+  :load-path m/load-path
   :requires lsp-mode
   :config
   (defun m/lsp-ivy-workspace-symbol-at-point ()
@@ -118,11 +131,6 @@
   (company-lsp-cache-candidates nil)
   (company-lsp-async t))
 
-(use-package google-c-style
-  :hook
-  ((c-mode-common c++-mode-common) . (lambda ()
-                          (google-set-c-style)
-                          (google-make-newline-indent))))
 (use-package cc-mode
   :bind 
     (:map c-mode-base-map

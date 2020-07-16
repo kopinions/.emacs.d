@@ -21,7 +21,7 @@
   :interpreter ("python" . python-mode))
 
 (use-package rainbow-mode
-  :diminish
+  :diminish rainbow-mode
   :hook
   (emacs-lisp-mode . rainbow-mode))
 

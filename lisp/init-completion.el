@@ -16,21 +16,23 @@
   :config
   (global-company-mode)
   (use-package company-posframe
-    :diminish company-posframe
+    :diminish company-posframe-mode
     :hook
     (company-mode . company-posframe-mode))
   (use-package company-flx
+    :diminish company-flx-mode
     :requires company
     :config
     (company-flx-mode +1))
   (use-package company-box
-    :diminish company-box
+    :diminish company-box-mode
     :hook (company-mode . company-box-mode)
     :config
     (setq company-box-backends-colors nil)
     (setq company-box-show-single-candidate nil)
     (setq company-box-max-candidates 50))
   (use-package company-quickhelp
+    :diminish company-quickhelp-mode
     :defines company-quickhelp-delay
     :bind
     (:map company-active-map
@@ -40,25 +42,25 @@
     :custom
     (company-quickhelp-delay 0.8)))
 
-(defvar company-mode/enable-yas t
-  "Enable yasnippet for all backends.")
-
-(defun company-mode/backend-with-yas (backend)
-  (if	(or (not company-mode/enable-yas)
-	    (and (listp backend) (member 'company-yasnippet backend)))
-      backend
-    (append (if (consp backend) backend (list backend))
-	    '(:with company-yasnippet))))
-
 (use-package yasnippet
-  :after company
-  :diminish yas-minor-mode
   :config
   (use-package yasnippet-snippets
     :requires yasnippet
-    :custom (yas-snippet-dirs `(,(expand-file-name "snippets" m/conf.d) ,yasnippet-snippets-dir)))
-  (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends))
-  (yas-reload-all)
+    :after company
+    :preface
+    (defvar company-mode/enable-yas t
+      "Enable yasnippet for all backends.")
+    (defun company-mode/backend-with-yas (backend)
+      (if	(or (not company-mode/enable-yas)
+		    (and (listp backend) (member 'company-yasnippet backend)))
+	  backend
+	(append (if (consp backend) backend (list backend))
+		'(:with company-yasnippet))))
+
+    :custom (yas-snippet-dirs `(,(expand-file-name "snippets" m/conf.d) ,yasnippet-snippets-dir))
+    :config
+    (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends))
+    (yas-reload-all))
   (yas-global-mode t))
 
 (provide 'init-completion)

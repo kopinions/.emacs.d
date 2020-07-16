@@ -8,15 +8,45 @@
 (when (version< emacs-version "25.1")
   (message "Your Emacs is old, and some functionality in this config will be disabled. Please upgrade if possible."))
 
+(let ((home\.d (quote "/Users/neo"))
+      (conf\.d (quote "/Users/neo/.emacs.d/")))
 (defconst m/os
   (let ((os (symbol-name system-type)))
     (cond ((string= os "darwin") 'macos)
-          ((string-prefix-p "gnu" os) 'linux)
-          ((or (string-prefix-p "ms" os) (string-prefix-p "windows" os)) 'windows))))
-(defvar m/conf.d (expand-file-name user-emacs-directory))
+	  ((string-prefix-p "gnu" os) 'linux)
+	  ((or (string-prefix-p "ms" os) (string-prefix-p "windows" os)) 'windows))))
+
+(defvar m/conf.d conf.d)
+(defvar m/home.d home.d)
+
+(defun m/var (name)
+  "Return value of variable or environment identified by NAME."
+  (or (getenv name) (eval (read name))))
+
+(defun m/resolve (path)
+  "Interpolation variable like ${var} $var in PATH with environment or elisp variables."
+  (if (string-prefix-p "~/" path)
+      (m/resolve (concat (getenv "HOME") (substring path 1)))
+    (let ((s (or (string-match "${\\([^ }]*\\)}" path)
+		 (string-match "$\\([A-z_]*\\)" path)))
+	  (e (match-end 0)))
+      (if (not s)
+	  path
+	(m/resolve
+	 (concat (substring path 0 s) (m/var (match-string 1 path)) (substring path e)))))))
+
+
+(defun tangle-if-absent (path)
+  (let* ((filename (m/resolve path)))
+    (if (file-exists-p filename)
+	nil
+      filename)))
+)
+
+(global-unset-key (kbd "M-`"))
 
 (defvar m/offline 
-  (file-directory-p (expand-file-name "offline" user-emacs-directory)))
+  (file-directory-p (expand-file-name "offline" m/conf.d)))
 
 (setq gc-cons-threshold 100000000)
 
@@ -24,13 +54,13 @@
   ;;; Install into separate package dirs for each Emacs version, to prevent bytecode incompatibility
 (let ((versioned-package-dir
        (expand-file-name (format "elpa-%s.%s" emacs-major-version emacs-minor-version)
-			 user-emacs-directory)))
+			 m/conf.d)))
   (setq package-user-dir versioned-package-dir))
 
 (if m/offline
-    (setq package-archives `(("gnu" . ,(expand-file-name "offline/gnu" user-emacs-directory))
-			     ("melpa" . ,(expand-file-name "offline/melpa" user-emacs-directory))
-			     ("org" . ,(expand-file-name "offline/org" user-emacs-directory))))
+    (setq package-archives `(("gnu" . ,(expand-file-name "offline/gnu" m/conf.d))
+			     ("melpa" . ,(expand-file-name "offline/melpa" m/conf.d))
+			     ("org" . ,(expand-file-name "offline/org" m/conf.d))))
   (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
 		      (not (gnutls-available-p))))
 	 (proto (if no-ssl "http" "https")))
@@ -50,12 +80,15 @@
 (package-initialize)
 (package-refresh-contents)
 
-(unless (package-installed-p 'use-package)
+(unless (and 
+	 (package-installed-p 'use-package)
+	 (package-installed-p 'diminish))
   (package-refresh-contents)
-  (package-install 'use-package))
+  (package-install 'use-package)
+  (package-install 'diminish))
 
 (eval-when-compile (require 'use-package))
-
+(require 'diminish)
 (setq use-package-always-ensure t)
 
 (use-package auto-package-update
@@ -67,8 +100,8 @@
 (use-package use-package-ensure-system-package
   :ensure t)
 
-(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(add-to-list 'load-path (expand-file-name "lisp" m/conf.d))
+(setq custom-file (expand-file-name "custom.el" m/conf.d))
 
 (use-package auto-compile
 :ensure t
@@ -78,8 +111,11 @@
   (auto-compile-on-save-mode))
 
 (defconst m/load-path (lambda () (list 
-			     (expand-file-name "lisp" user-emacs-directory)
-			     (expand-file-name "verilog-mode" (expand-file-name "3rdparty" user-emacs-directory)))))
+			     (expand-file-name "lisp" m/conf.d)
+			     (expand-file-name "verilog-mode" (expand-file-name "3rdparty" m/conf.d))
+			     (expand-file-name "lsp-ivy" (expand-file-name "3rdparty" m/conf.d))
+			     (expand-file-name "librime" (expand-file-name "3rdparty" m/conf.d))
+			     (expand-file-name "liberime" (expand-file-name "3rdparty" m/conf.d)))))
 (use-package init-os
   :load-path m/load-path)
 (use-package init-ui

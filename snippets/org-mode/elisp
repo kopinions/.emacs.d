@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: lisp
+# key: <elisp
+# --
+#+BEGIN_SRC elisp :eval never :exports code
+$0
+#+END_SRC

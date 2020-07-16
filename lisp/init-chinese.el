@@ -8,7 +8,7 @@
 
 (use-package posframe)
 (use-package pyim
-  :diminish pyim-isearch
+  :diminish pyim-isearch-mode
   :after posframe
   :config
   ;; 激活 basedict 拼音词库，五笔用户请继续阅读 README
@@ -53,12 +53,13 @@
    :map pyim-mode-map
    ("C-n" . pyim-page-next-page)
    ("C-p" . pyim-page-previous-page)
-  )
+   )
   :hook 
   ((emacs-startup . pyim-restart)))
 
 (use-package liberime
-  :load-path (lambda () (expand-file-name "liberime" (expand-file-name "3rdparty" m/conf.d)))
+  :if (eq m/os 'macos)
+  :load-path m/load-path
   :after pyim
   :init
   (setenv "RIME_PATH" (expand-file-name "librime" (expand-file-name "3rdparty" m/conf.d)))
@@ -77,6 +78,6 @@
 			     5 1
 			     (ignore-errors (lambda ()
 					      (liberime-select-schema "luna_pinyin_simp")
-					      (setq pyim-default-scheme 'rime)))))))
+					      (setq pyim-default-scheme 'rime-quanpin)))))))
 
 (provide 'init-chinese)

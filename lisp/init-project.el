@@ -1,5 +1,5 @@
 (use-package projectile
-  :diminish
+  :diminish projectile-mode
   :after counsel
   :custom
   (projectile-sort-order 'recently-active)
@@ -11,7 +11,7 @@
    ("C-c p s" . projectile-save-project-buffers)
    ("C-c p d" . counsel-projectile-find-dir)
    ("C-c p c" . projectile-compile-project)
-   ("C-c p r" . counsel-projectile-rg)
+   ("C-c p r" . rg-project)
    ("C-c p %" . projectile-replace-regexp)
    ("C-c p g" . projectile-grep))
   :config

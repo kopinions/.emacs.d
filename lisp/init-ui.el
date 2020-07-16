@@ -8,10 +8,10 @@
   (set-scroll-bar-mode nil))
 (if (eq m/os 'macos)
     (add-hook 'after-make-frame-functions
-              (lambda (frame)
-                (set-frame-parameter frame 'menu-bar-lines
-                                     (if (display-graphic-p frame)
-                                         1 0))))
+	      (lambda (frame)
+		(set-frame-parameter frame 'menu-bar-lines
+				     (if (display-graphic-p frame)
+					 1 0))))
   (when (fboundp 'menu-bar-mode)
     (menu-bar-mode -1)))
 
@@ -28,11 +28,11 @@
 
 (setq frame-title-format
       '((:eval (if (buffer-file-name)
-                   (abbreviate-file-name (buffer-file-name))
-                 "%b"))))
+		   (abbreviate-file-name (buffer-file-name))
+		 "%b"))))
 (add-hook 'term-mode-hook
-          (lambda ()
-            (setq line-spacing 0)))
+	  (lambda ()
+	    (setq line-spacing 0)))
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 
@@ -56,6 +56,8 @@
 
 (use-package ace-window
   :ensure t
+  :custom
+  (aw-scope 'frame)
   :config
   (global-set-key (kbd "s-w") 'ace-window)
   (global-set-key [remap other-window] 'ace-window))
@@ -90,32 +92,32 @@
    ("C-h v" . counsel-describe-variable)
    ("C-c y" . counsel-yank-pop))
   :preface
-    (defun ivy-format-function-pretty (cands)
-      "Transform CANDS into a string for minibuffer."
-      (ivy--format-function-generic
-       (lambda (str)
-         (concat
-             (all-the-icons-faicon "hand-o-right" :height .85 :v-adjust .05 :face 'font-lock-constant-face)
-             (ivy--add-face str 'ivy-current-match)))
-       (lambda (str)
-         (concat "  " str))
-       cands
-       "\n"))
+  (defun ivy-format-function-pretty (cands)
+    "Transform CANDS into a string for minibuffer."
+    (ivy--format-function-generic
+     (lambda (str)
+       (concat
+	(all-the-icons-faicon "hand-o-right" :height .85 :v-adjust .05 :face 'font-lock-constant-face)
+	(ivy--add-face str 'ivy-current-match)))
+     (lambda (str)
+       (concat "  " str))
+     cands
+     "\n"))
   :config
   ;; Default setting is not suitable for GuixSD.
   (setq counsel-linux-app-format-function
-        #'counsel-linux-app-format-function-name-only)
+	#'counsel-linux-app-format-function-name-only)
   (setq ivy-re-builders-alist
-    '((swiper . ivy--regex-plus)
-     (ivy-switch-buffer . ivy--regex-plus)
-     (counsel-projectile-rg . ivy--regex-plus)
-     (counsel-rg . ivy--regex-plus)
-     (t . ivy--regex-fuzzy)))
+	'((swiper . ivy--regex-plus)
+	  (ivy-switch-buffer . ivy--regex-plus)
+	  (counsel-projectile-rg . ivy--regex-plus)
+	  (counsel-rg . ivy--regex-plus)
+	  (t . ivy--regex-fuzzy)))
   (setq ivy-initial-inputs-alist nil)
   (with-eval-after-load 'projectile
-      (setq projectile-completion-system 'ivy))
+    (setq projectile-completion-system 'ivy))
   (with-eval-after-load 'magit
-      (setq magit-completing-read-function 'ivy-completing-read))
+    (setq magit-completing-read-function 'ivy-completing-read))
   (use-package flx)
   (use-package amx)
   (use-package counsel-projectile
@@ -125,14 +127,14 @@
     (all-the-icons-dir-icon-alist bookmark-alist)
     :functions
     (all-the-icons-icon-family
-      all-the-icons-match-to-alist
-      all-the-icons-auto-mode-match?
-      all-the-icons-octicon
-      all-the-icons-dir-is-submodule)
+     all-the-icons-match-to-alist
+     all-the-icons-auto-mode-match?
+     all-the-icons-octicon
+     all-the-icons-dir-is-submodule)
     :hook 
     (ivy-rich-mode . (lambda ()
-                              (setq ivy-virtual-abbreviate
-                              (or (and ivy-rich-mode 'abbreviate)))))
+		       (setq ivy-virtual-abbreviate
+			     (or (and ivy-rich-mode 'abbreviate)))))
     :config
     (ivy-rich-mode))
   :hook
@@ -142,20 +144,20 @@
 (use-package ivy-xref
   :after (ivy)
   :init (if (< emacs-major-version 27)
-            (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)
-          (setq xref-show-definitions-function #'ivy-xref-show-defs)))
+	    (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)
+	  (setq xref-show-definitions-function #'ivy-xref-show-defs)))
 
 (use-package dashboard
-   :diminish dashboard-mode
-   :config
-   (setq dashboard-startup-banner 'logo
-         dashboard-banner-logo-title "Welcome to Emacs. Happy Hacking!"
-         dashboard-items '((recents  . 5)
-                        (bookmarks . 5)
-                        (projects . 5)
-                        (agenda . 5)
-                        (registers . 5))
-         dashboard-set-footer nil)
+  :diminish dashboard-mode
+  :config
+  (setq dashboard-startup-banner 'logo
+	dashboard-banner-logo-title "Welcome to Emacs. Happy Hacking!"
+	dashboard-items '((recents  . 5)
+			  (bookmarks . 5)
+			  (projects . 5)
+			  (agenda . 5)
+			  (registers . 5))
+	dashboard-set-footer nil)
   :hook
   (after-init . dashboard-setup-startup-hook))
 

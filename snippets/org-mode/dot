@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: dot
+# key: <dot
+# --
+#+BEGIN_SRC dot :exports results :file $1 :eval yes
+  digraph G {
+	node [shape=$1];
+	$0
+  }
+#+END_SRC

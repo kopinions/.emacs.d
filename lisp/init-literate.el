@@ -28,6 +28,12 @@ same directory as the org-buffer and insert a link to this file."
       (insert (concat "[[file:" filename "]]"))))
 
 (use-package org
+  :diminish org-mode
+  :preface
+  (defun m/refile-targets ()
+    "Refile targets with inbox.org excluded"
+    (let ((excluded '("mobile.org" "inbox.org" "notes.org")))
+      (seq-filter (lambda (f) (if (member (file-name-nondirectory f) excluded) nil t)) org-agenda-files)))
   :custom
   (org-src-fontify-natively t)
   (org-descriptive-links nil)
@@ -51,10 +57,11 @@ same directory as the org-buffer and insert a link to this file."
 				  "Effort_ALL" . "00:05 00:10 00:15 00:30 01:00 01:30 02:00 02:30 03:00"))))
   (org-agenda-files `(
 		      ,(expand-file-name "inbox.org" private-directory)
-		      ,(expand-file-name "notes.org" private-directory)
 		      ,(expand-file-name "todos.org" private-directory)
+		      ,(expand-file-name "mobile.org" private-directory)
 		      ,(expand-file-name "routine.org" private-directory)
 		      ))
+  (org-archive-location (concat (expand-file-name "archive.org" private-directory) "::datetree/* Finished Tasks"))
   (org-support-shift-select t)
 
   ;; Targets start with the file name - allows creating level 1 tasks
@@ -63,13 +70,13 @@ same directory as the org-buffer and insert a link to this file."
   (org-outline-path-complete-in-steps nil)
 
   ;; Allow refile to create parent tasks with confirmation
-  (org-refile-use-cache nil)
+  (org-refile-use-cache t)
+
   (org-refile-allow-creating-parent-nodes 'confirm)
-  (org-refile-targets '((nil :maxlevel . 5) (org-agenda-files :maxlevel . 5)))
+  (org-refile-targets '((m/refile-targets :maxlevel . 5)))
   (org-archive-mark-done nil)
 	;;; Agenda views
   (org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
-  (org-archive-location "%s_archive::* Archive")
   ;; (org-agenda-current-time-string "------------NOW------------")
   ;; (org-agenda-time-grid
   ;;     '((daily today require-timed)
@@ -116,6 +123,9 @@ same directory as the org-buffer and insert a link to this file."
 	 ("C-c o" . org-clock-out)
 	 ("C-c n" . org-narrow-to-subtree)
 	 ("C-c b" . org-narrow-to-block)
+	 ("C-c {" . sp-wrap-curly)
+	 ("C-c (" . sp-wrap-round)
+	 ("C-c [" . sp-wrap-square)
 	 ("C-c w" . widen)
 	 ("C-c e" . org-set-effort))
   :hook
@@ -132,7 +142,6 @@ same directory as the org-buffer and insert a link to this file."
   (advice-add 'org-agenda-capture       :after (lambda (&rest _rest)  (org-save-all-org-buffers)))
   (advice-add 'org-store-log-note :after (lambda (&rest _rest)  (org-save-all-org-buffers)))
   (advice-add 'org-todo           :after (lambda (&rest _rest)  (org-save-all-org-buffers)))
-
   (setq org-todo-keywords
 	(quote (
 		(sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!/!)")
@@ -204,19 +213,59 @@ same directory as the org-buffer and insert a link to this file."
    `(("N" "Notes" tags "NOTE"
       ((org-agenda-overriding-header "Notes")
        (org-tags-match-list-sublevels t)))
+     ("a" "Agenda"
+      ((agenda "" ((org-agenda-span 1)                      ; daily agenda
+		   (org-deadline-warning-days 0)            ; 7 day advanced warning for deadlines
+		   (org-agenda-scheduled-leaders '("" "Due %2dx: "))
+		   (org-agenda-overriding-header "Today's Schedule:")
+		   (org-agenda-start-day nil)
+		   (org-agenda-start-on-weekday nil)
+		   (org-agenda-compact-blocks t)
+		   (org-agenda-use-time-grid nil)))
+       (agenda "" ((org-agenda-span 7)                      ;; overview of appointments
+		   (org-agenda-start-on-weekday nil)         ;; calendar begins today
+		   (org-agenda-scheduled-leaders '("" "Due %2dx: "))
+		   (org-agenda-deadline-leaders '("" "Due in %2dx: "))
+		   (org-agenda-start-day "+1d")
+		   (org-agenda-show-future-repeats nil)
+		   (org-agenda-entry-types '(:timestamp :sexp :scheduled :deadline))))))
      ("g" "GTD"
-      ((agenda "" nil)
+      ((agenda "" ((org-agenda-span 1)                      ; daily agenda
+		   (org-deadline-warning-days 0)            ; 7 day advanced warning for deadlines
+		   (org-agenda-scheduled-leaders '("" "Due %2dx: "))
+		   (org-agenda-overriding-header "Today's Schedule:")
+		   (org-agenda-start-day nil)
+		   (org-agenda-start-on-weekday nil)
+		   (org-agenda-compact-blocks t)
+		   (org-agenda-use-time-grid nil)))
+       (agenda "" ((org-agenda-scheduled-leaders '("" "Due %2dx: "))
+		   (org-agenda-skip-function '(lambda () (let ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
+							  (current-headline (or (and (org-at-heading-p)
+										     (point))
+										(save-excursion (org-back-to-heading)))))
+						      (if (and (member "routine" (org-get-tags-at current-headline)) (not (org-get-deadline-time current-headline)))
+							  next-headline
+							nil))))
+		   (org-agenda-span 7)
+		   (org-agenda-start-on-weekday nil)
+		   (org-agenda-start-day "+1d")
+		   (org-agenda-show-future-repeats nil)
+		   (org-agenda-entry-types '(:timestamp :sexp :scheduled :deadline))))
+
        (tags "INBOX"
 	     ((org-agenda-overriding-header "Inbox")
 	      (org-agenda-skip-function
 	       '(lambda ()
 		  (or (org-agenda-skip-subtree-if 'todo '("DONE"))
-		      (org-agenda-skip-entry-if 'nottodo '("TODO", "NEXT")))))
+		      (org-agenda-skip-entry-if 'nottodo '("TODO" "NEXT")))))
 	      (org-tags-match-list-sublevels t)))
        (stuck ""
 	      ((org-agenda-overriding-header "Stuck Projects")
 	       (org-agenda-tags-todo-honor-ignore-options t)
 	       (org-tags-match-list-sublevels t)
+	       (org-agenda-skip-function
+		'(lambda ()
+		   (org-agenda-skip-entry-if 'nottodo '("PROJECT"))))
 	       (org-agenda-todo-ignore-deadlines 'all)
 	       (org-agenda-todo-ignore-scheduled 'all)))
        (tags-todo "-INBOX"
@@ -271,10 +320,11 @@ same directory as the org-buffer and insert a link to this file."
 		   (org-tags-match-list-sublevels nil)
 		   (org-agenda-sorting-strategy
 		    '(category-keep))))
+
        ;; (tags-todo "-NEXT"
        ;;            ((org-agenda-overriding-header "All other TODOs")
        ;;             (org-match-list-sublevels t)))
-       ))  )))
+       )))))
 
 (use-package org
   :custom
@@ -369,6 +419,9 @@ same directory as the org-buffer and insert a link to this file."
   (org-export-allow-bind-keywords t))
 
 (use-package org
+  :custom
+  (org-ditaa-jar-path (expand-file-name "ditaa.jar" m/conf.d))
+  (org-plantuml-jar-path (expand-file-name "plantuml.jar" m/conf.d))
   :config
   (unless (and (boundp 'org-ditaa-jar-path)
 	       (file-exists-p org-ditaa-jar-path)

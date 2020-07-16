@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: 
+# key: <s
+# --
+#+BEGIN_SRC $1 :eval never :exports code
+$0
+#+END_SRC

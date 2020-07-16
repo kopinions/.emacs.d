@@ -98,7 +98,7 @@ file to edit."
 
 (use-package eshell-toggle
   :bind
-  (("M-<f12>" . eshell-toggle)))
+  (("s-<f12>" . eshell-toggle)))
 
 (use-package eshell
   :config

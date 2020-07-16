@@ -6,11 +6,11 @@
 (cua-selection-mode t)
 
 (auto-save-visited-mode)
-(make-directory (expand-file-name "backups" user-emacs-directory) t)
+(make-directory (expand-file-name "backups" m/conf.d) t)
 (setq auto-save-file-name-transforms
-      `((".*" ,(expand-file-name "backups/" user-emacs-directory) t)))
+      `((".*" ,(expand-file-name "backups/" m/conf.d) t)))
 (setq auto-save-list-file-prefix
-      (expand-file-name "backups/" user-emacs-directory))
+      (expand-file-name "backups/" m/conf.d))
 
 (setq make-backup-files nil)
 ; stop to create the lock files
@@ -57,15 +57,6 @@
   :bind
   ("C-a" . mwim-beginning-of-code-or-line)
   ("C-e" . mwim-end-of-code-or-line))
-
-(use-package key-chord
-  :config
-  (setq key-chord-two-keys-delay 0.2)
-
-  (key-chord-define-global "qq" 'kill-this-buffer)
-  (key-chord-define-global "''" "`'\C-b")
-  (key-chord-define-global ",," 'indent-for-comment-and-indent)
-  (key-chord-mode 1))
 
 (use-package origami
 :bind (("C-c f" . origami-recursively-toggle-node)
@@ -194,11 +185,53 @@
   (([remap query-replace-regexp] . anzu-query-replace-regexp)
    ([remap query-replace] . anzu-query-replace)))
 
+(use-package rg
+  :preface
+  (defun rg-occur-hide-lines-not-matching (search-text)
+    "Hide lines that don't match the specified regexp."
+    (interactive "MHide lines not matched by regexp: ")
+    (set (make-local-variable 'line-move-ignore-invisible) t)
+    (save-excursion
+      (goto-char (point-min))
+      (forward-line 5)
+      (let ((inhibit-read-only t)
+	    line)
+	(while (not (looking-at-p "^\nrg finished "))
+	  (setq line (buffer-substring-no-properties (point) (point-at-eol)))
+	  (if (string-match-p search-text line)
+	      (forward-line)
+	    (when (not (looking-at-p "^\nrg finished "))
+	      (delete-region (point) (1+ (point-at-eol)))))))))
+  (defun rg-occur-hide-lines-matching  (search-text)
+    "Hide lines matching the specified regexp."
+    (interactive "MHide lines matching regexp: ")
+    (set (make-local-variable 'line-move-ignore-invisible) t)
+    (save-excursion
+      (goto-char (point-min))
+      (forward-line 5)
+      (let ((inhibit-read-only t)
+	    line)
+	(while (not (looking-at-p "^\nrg finished "))
+	  (setq line (buffer-substring-no-properties (point) (point-at-eol)))
+	  (if (not (string-match-p search-text line))
+	      (forward-line)
+	    (when (not (looking-at-p "^\nrg finished "))
+	      (delete-region (point) (1+ (point-at-eol)))))))))
+  :custom
+  (rg-show-header nil)
+  :config
+  (rg-enable-default-bindings)
+  :bind
+  (:map rg-mode-map ("/" . rg-occur-hide-lines-not-matching)
+	("!" . rg-occur-hide-lines-matching)
+	("M-N" . rg-next-file)
+	("M-P" . rg-prev-file)))
+
 (use-package wgrep
-   :custom
-   (wgrep-enable-key "e")
-   (wgrep-auto-save-buffer t)
-   (wgrep-change-readonly-file t))
+  :custom
+  (wgrep-enable-key "e")
+  (wgrep-auto-save-buffer nil)
+  (wgrep-change-readonly-file t))
 
 (use-package avy-zap
   :bind
